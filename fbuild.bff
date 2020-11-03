@@ -1,0 +1,52 @@
+
+.Compiler          = '/usr/bin/gcc'
+.Librarian         = '/usr/bin/ld'
+.Librarian                      = '/usr/bin/ld'
+.LibrarianOptions               = 'rcs "%2" "%1"'
+.Linker            = '/usr/bin/gcc'
+.LinkerOptions     = '"%1" -o "%2"'
+.CompilerOptions   = ' -o "%2" "%1"'   // Input/Output
+                     + ' -c'             // Compile only
+                     + ' -g'             // Generate debug info
+                     + ' -m64'           // x86_64
+                     + ' -D__LINUX__'    // Platform define
+                     + ' -ffreestanding' // prevent extra magic includes like stdc-predefs.h
+
+                     // Include paths
+                     + ' -I./src/example'
+                     + ' -I./src/libbilltree'
+.LibrarianOptions  = '-shared -o %2 %1'
+.LibExtension                   = '.so'
+.ExeExtension                   = ''
+
+// Exception Control
+.UseExceptions                  = ' -fexceptions'
+Library( 'libbilltree' )
+{
+    .CompilerInputPattern = '*.c'
+    .CompilerInputPath    = 'src/libbilltree/'
+    .CompilerOutputPath   = 'out/'
+    .LibrarianOutput      = 'out/libbilltree.so'
+    .LinkerOptions        + ' /usr/lib/x86_64-linux-gnu/libxxhash.so'
+}
+
+ObjectList( 'example-lib' )
+{
+    .CompilerInputPattern = '*.c'
+    .CompilerInputPath  = 'src/example/'
+    .CompilerOutputPath = 'out/'
+}
+
+Executable( 'example' )
+{
+    .Libraries          = { "example-lib" }
+    .LinkerOutput       = 'out/example'
+    .LinkerOptions      + ' out/libbilltree.so'
+                        + ' /usr/lib/x86_64-linux-gnu/libxxhash.so'
+}
+
+Alias( 'all' ) {
+    .Targets = {
+        'libbilltree', 'example'
+    }
+}
